@@ -1,5 +1,6 @@
 # Gracefully
 
+[![Build Status](https://travis-ci.org/crowdworks/gracefully.svg?branch=master)](https://travis-ci.org/crowdworks/gracefully)
 [![Coverage Status](https://coveralls.io/repos/crowdworks/gracefully/badge.png?branch=master)](https://coveralls.io/r/crowdworks/gracefully?branch=master)
 
 ensures features gracefully degrade based on error rate or turnaround time.
