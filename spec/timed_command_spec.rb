@@ -37,6 +37,14 @@ RSpec.shared_examples "a timed command" do
 end
 
 RSpec.describe Gracefully::TimedCommand do
+  context "command creation with invalid number of arguments" do
+    subject {
+      described_class.new(1, 2, 3)
+    }
+
+    specify { expect { subject }.to raise_error(/Invalid number of arguments: 3/) }
+  end
+
   describe "feature call result" do
     context 'made of a callable object' do
       subject {
