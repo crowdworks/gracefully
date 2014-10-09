@@ -14,7 +14,9 @@ module Gracefully
       @resolved = begin
         Success.with @block.call
       rescue => e
-        Failure.with Error.new('Nested error', nested: e)
+        # Back-traces, which are required by Gracefully::Error, of errors are usually set by `raise`.
+        # We need to set them manually because we aren't relying on `raise`.
+        Failure.with Error.new('Nested error', nested: e).tap { |e| e.set_backtrace caller(0) }
       end
     end
 
@@ -59,7 +61,7 @@ module Gracefully
     end
 
     def get
-      raise @error
+      raise Error.new('Tried to get the value of a failure', nested: @error)
     end
   end
 
