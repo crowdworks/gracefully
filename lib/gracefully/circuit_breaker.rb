@@ -2,13 +2,18 @@ module Gracefully
   class CircuitBreaker
     attr_reader :opened_date
 
-    def initialize(args)
-      @try_close_after = args[:try_close_after]
+    def initialize(*args)
+      if args.size > 0
+        options = args.first
+
+        @try_close_after = options[:try_close_after]
+      end
+
       @closed = true
     end
 
     def execute(&block)
-      if open? && try_close_period_passed?.!
+      if open? && (@try_close_after.nil? || try_close_period_passed?.!)
         raise CurrentlyOpenError, "Opened at #{opened_date}"
       end
 
@@ -48,8 +53,6 @@ module Gracefully
       @opened_date
     end
 
-    private
-
     def close!
       @closed = true
     end
@@ -58,6 +61,8 @@ module Gracefully
       @closed = false
       @opened_date = Time.now
     end
+
+    private
 
     def clear_opened_date!
       @opened_date = nil
