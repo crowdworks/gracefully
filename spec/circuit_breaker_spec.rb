@@ -12,6 +12,47 @@ RSpec.describe Gracefully::CircuitBreaker do
     10
   }
 
+  it 'passes the integration test' do
+    initial_failure_time = Time.now
+
+    Timecop.freeze(initial_failure_time) do
+      expect {
+        subject.execute do
+          raise 'foo'
+        end
+      }.to raise_error('foo')
+
+      expect(subject.open?).to be_truthy
+      expect(subject.closed?).to be_falsey
+      expect(subject.opened_date).not_to be_nil
+    end
+
+    Timecop.freeze(initial_failure_time + 10) do
+      expect {
+        subject.execute do
+          'bar'
+        end
+      }.to raise_error(Gracefully::CircuitBreaker::CurrentlyOpenError)
+
+      expect(subject.open?).to be_truthy
+      expect(subject.closed?).to be_falsey
+      expect(subject.opened_date).not_to be_nil
+    end
+
+    Timecop.freeze(initial_failure_time + 11) do
+      expect(
+        subject.execute do
+          'baz'
+        end
+      ).to eq('baz')
+
+      expect(subject.open?).to be_falsey
+      expect(subject.closed?).to be_truthy
+      expect(subject.try_close_period_passed?).to be_falsey
+      expect(subject.opened_date).to be_nil
+    end
+  end
+
   context 'when failed' do
     before do
       subject.mark_success

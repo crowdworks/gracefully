@@ -4,6 +4,24 @@ module Gracefully
 
     def initialize(args)
       @try_close_after = args[:try_close_after]
+      @closed = true
+    end
+
+    def execute(&block)
+      if open? && try_close_period_passed?.!
+        raise CurrentlyOpenError, "Opened at #{opened_date}"
+      end
+
+      clear_opened_date!
+
+      begin
+        v = block.call
+        mark_success
+        v
+      rescue => e
+        mark_failure
+        raise e
+      end
     end
 
     def mark_success
@@ -39,6 +57,14 @@ module Gracefully
     def open!
       @closed = false
       @opened_date = Time.now
+    end
+
+    def clear_opened_date!
+      @opened_date = nil
+    end
+
+    class CurrentlyOpenError < StandardError
+
     end
   end
 end
