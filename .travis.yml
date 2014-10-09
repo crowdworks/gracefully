@@ -28,4 +28,5 @@ matrix:
     - rvm: ruby-head
   fast_finish: true
 sudo: false
+before_install: gem install bundler
 script: bundle exec rspec
