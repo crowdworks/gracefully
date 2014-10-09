@@ -14,8 +14,16 @@ jdk:
   - openjdk7
   - oraclejdk7
 matrix:
+  exclude:
+    - rvm: 1.9.3
+      jdk: openjdk7
+    - rvm: 2.1.2
+      jdk: openjdk7
+    - rvm: 2.1.3
+      jdk: openjdk7
   allow_failures:
     - rvm: jruby-head
     - rvm: ruby-head
   fast_finish: true
 sudo: false
+script: bundle exec rspec
