@@ -1,5 +1,7 @@
 # Gracefully
 
+[![Coverage Status](https://coveralls.io/repos/crowdworks/gracefully/badge.png?branch=master)](https://coveralls.io/r/crowdworks/gracefully?branch=master)
+
 ensures features gracefully degrade based on error rate or turnaround time.
 
 ## Installation
