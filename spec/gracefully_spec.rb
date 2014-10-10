@@ -64,4 +64,86 @@ RSpec.describe Gracefully do
       specify { expect { subject }.to raise_error(/Tried to get the value of a failure/) }
     end
   end
+
+  describe 'the command' do
+    let(:allowed_failures) { 1 }
+
+    let (:command) {
+      described_class.command(
+        timeout: 0.1,
+        retries: 1,
+        allowed_failures: allowed_failures,
+        counter: -> { Gracefully::InMemoryCounter.new },
+        &body
+      )
+    }
+
+    subject {
+      command.call
+    }
+
+    context 'which is successful' do
+      let(:body) {
+        -> { 'ok' }
+      }
+
+      it { is_expected.to eq('ok') }
+    end
+
+    context 'which fails at first and then succeeds' do
+      let(:body) {
+        count = 0
+        -> {
+          count += 1
+          if count == 1
+            raise 'simulated error'
+          else
+            'ok'
+          end
+        }
+      }
+
+      it { is_expected.to eq('ok') }
+    end
+
+    context 'which is failing' do
+      let(:body) {
+        -> { raise 'simulated error' }
+      }
+
+      context 'after failures more than allowed' do
+        before do
+          (allowed_failures + 1).times do
+            expect { subject }.to raise_error(Gracefully::Error, 'simulated error')
+          end
+        end
+
+        specify {
+          expect { subject }.to raise_error(Gracefully::CircuitBreaker::CurrentlyOpenError)
+        }
+      end
+    end
+
+    context 'which is timing out' do
+      let(:body) {
+        -> { sleep 1 }
+      }
+
+      specify {
+        expect { subject }.to raise_error(Gracefully::Error, 'execution expired')
+      }
+
+      context 'after failures more than allowed' do
+        before do
+          (allowed_failures + 1).times do
+            expect { subject }.to raise_error(Gracefully::Error, 'execution expired')
+          end
+        end
+
+        specify {
+          expect { subject }.to raise_error(Gracefully::CircuitBreaker::CurrentlyOpenError)
+        }
+      end
+    end
+  end
 end
