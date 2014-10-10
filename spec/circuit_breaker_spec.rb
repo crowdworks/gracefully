@@ -87,7 +87,6 @@ RSpec.describe Gracefully::CircuitBreaker do
       Timecop.freeze(initial_failure_time + 10) do
         expect {
           subject.execute do
-            'bar'
           end
         }.to raise_error(Gracefully::CircuitBreaker::CurrentlyOpenError)
 
