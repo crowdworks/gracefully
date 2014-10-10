@@ -10,6 +10,7 @@ module Gracefully
       end
 
       @closed = true
+      @health = options && options[:health] || Gracefully::ConsecutiveFailuresBasedHealth.new(become_unhealthy_after_consecutive_failures: 0)
     end
 
     def execute(&block)
@@ -30,11 +31,15 @@ module Gracefully
     end
 
     def mark_success
-      close!
+      @health.mark_success
+
+      update!
     end
 
     def mark_failure
-      open!
+      @health.mark_failure
+
+      update!
     end
 
     def open?
@@ -51,6 +56,14 @@ module Gracefully
 
     def opened_date
       @opened_date
+    end
+
+    def update!
+      if @health.healthy?
+        close!
+      else
+        open!
+      end
     end
 
     def close!
