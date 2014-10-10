@@ -1,5 +1,15 @@
 require 'gracefully/consecutive_failures_based_health'
 
+RSpec.shared_examples 'healthy' do
+  it { is_expected.to be_healthy }
+  it { is_expected.not_to be_unhealthy }
+end
+
+RSpec.shared_examples 'unhealthy' do
+  it { is_expected.to be_unhealthy }
+  it { is_expected.not_to be_healthy }
+end
+
 RSpec.describe Gracefully::ConsecutiveFailuresBasedHealth do
   subject {
     described_class.new(
@@ -20,16 +30,16 @@ RSpec.describe Gracefully::ConsecutiveFailuresBasedHealth do
     t + 1
   end
 
-  it { is_expected.to be_healthy }
-  it { is_expected.not_to be_unhealthy }
+  context 'initially' do
+    it_behaves_like 'healthy'
+  end
 
   context 'after failures less than or equal to the threshold' do
     before do
       less_than_or_equal_to(threshold).times { subject.mark_failure }
     end
 
-    it { is_expected.to be_healthy }
-    it { is_expected.not_to be_unhealthy }
+    it_behaves_like 'healthy'
   end
 
   context 'after failures more than the threshold' do
@@ -37,8 +47,7 @@ RSpec.describe Gracefully::ConsecutiveFailuresBasedHealth do
       more_than(threshold).times { subject.mark_failure }
     end
 
-    it { is_expected.to be_unhealthy }
-    it { is_expected.not_to be_healthy }
+    it_behaves_like 'unhealthy'
   end
 
   context 'after failures more than threshold and a success' do
@@ -47,7 +56,23 @@ RSpec.describe Gracefully::ConsecutiveFailuresBasedHealth do
       subject.mark_success
     end
 
-    it { is_expected.to be_healthy }
-    it { is_expected.not_to be_unhealthy }
+    it_behaves_like 'healthy'
+  end
+
+  context 'after failurse more than thoreshold + 1 and a success' do
+    before do
+      more_than(threshold + 1).times { subject.mark_failure }
+      subject.mark_success
+    end
+
+    it_behaves_like 'healthy'
+  end
+
+  context 'after consecutive successes' do
+    before do
+      2.times { subject.mark_success }
+    end
+
+    it_behaves_like 'healthy'
   end
 end
