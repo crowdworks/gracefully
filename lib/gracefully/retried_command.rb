@@ -1,15 +1,11 @@
-module Gracefully
-  class RetriedCommand
-    def initialize(*args, &block)
-      @callable, options = if args.size == 1
-                             [block, args.first]
-                           elsif args.size == 2
-                             args
-                           else
-                             raise "Invalid number of arguments: #{args.size}"
-                           end
+require_relative 'command'
 
-      @retries = options[:retries]
+module Gracefully
+  class RetriedCommand < Command
+    def initialize(*args, &block)
+      super
+
+      @retries = @options[:retries]
     end
 
     def call(*args, &block)

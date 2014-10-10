@@ -1,17 +1,13 @@
 require 'timeout'
 
-module Gracefully
-  class TimedCommand
-    def initialize(*args, &block)
-      @callable, options = if args.size == 1
-                             [block, args.first]
-                           elsif args.size == 2
-                             args
-                           else
-                             raise "Invalid number of arguments: #{args.size}"
-                           end
+require_relative 'command'
 
-      @timeout = options[:timeout]
+module Gracefully
+  class TimedCommand < Command
+    def initialize(*args, &block)
+      super
+
+      @timeout = @options[:timeout]
     end
 
     def call(*args, &block)
