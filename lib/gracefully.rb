@@ -17,6 +17,8 @@ module Gracefully
       command(RetriedCommand.new(callable, options), options.dup.tap { |h| h.delete(:retries) })
     elsif options[:allowed_failures]
       ShortCircuitedCommand.new(callable, options)
+    else
+      Command.new(callable, options)
     end
   end
 end

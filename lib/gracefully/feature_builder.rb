@@ -4,13 +4,13 @@ module Gracefully
       @feature_name = feature_name
     end
 
-    def usually(&block)
-      @usually = block
+    def usually(*args, &block)
+      @usually = Gracefully.command(*args, &block)
       self
     end
 
-    def fallback_to(&block)
-      @fallback_to = block
+    def fallback_to(*args, &block)
+      @fallback_to = Gracefully.command(*args, &block)
 
       build
     end

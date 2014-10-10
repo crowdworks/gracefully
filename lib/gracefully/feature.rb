@@ -7,7 +7,9 @@ module Gracefully
     end
 
     def call(*args)
-      Try.to { @usually.call *args }.or_else(Try.to { @fallback_to.call *args }).get
+      Try.to { @usually.call *args }.
+        or_else(Try.to { @fallback_to.call *args }).
+        get
     end
   end
 end
