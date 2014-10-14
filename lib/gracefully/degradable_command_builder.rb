@@ -1,7 +1,6 @@
 module Gracefully
-  class FeatureBuilder
-    def initialize(feature_name)
-      @feature_name = feature_name
+  class DegradableCommandBuilder
+    def initialize
     end
 
     def usually(*args, &block)
@@ -18,7 +17,7 @@ module Gracefully
     private
 
     def build
-      Feature.new(name: @feature_name, usually: @usually, fallback_to: @fallback_to)
+      DegradableCommand.new(usually: @usually, fallback_to: @fallback_to)
     end
   end
 end

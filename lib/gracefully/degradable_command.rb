@@ -1,7 +1,6 @@
 module Gracefully
-  class Feature
+  class DegradableCommand
     def initialize(args)
-      @name = args[:name]
       @usually = args[:usually]
       @fallback_to = args[:fallback_to]
     end

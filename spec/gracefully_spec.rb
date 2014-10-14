@@ -13,11 +13,10 @@ RSpec.shared_context 'failing fallback' do
 end
 
 RSpec.describe Gracefully do
-  describe "feature call result" do
+  describe "command call result" do
     subject {
       Gracefully.
-        degrade(feature_name).
-        usually(&usually).
+        degradable_command(&usually).
         fallback_to(&fallback_to).
         call input1
     }
@@ -26,9 +25,9 @@ RSpec.describe Gracefully do
       'input1'
     }
 
-    context 'when the feature is defined for the name' do
-      let(:feature_name) {
-        :the_feature
+    context 'when the command is defined for the name' do
+      let(:command_name) {
+        :the_command
       }
 
       include_context 'successful fallback'
@@ -51,8 +50,8 @@ RSpec.describe Gracefully do
     end
 
     context 'when both the usual block and the fallback block fail' do
-      let(:feature_name) {
-        :the_feature
+      let(:command_name) {
+        :the_command
       }
 
       include_context 'failing fallback'

@@ -1,11 +1,11 @@
 require "gracefully/version"
-require "gracefully/feature"
-require "gracefully/feature_builder"
+require "gracefully/degradable_command"
+require "gracefully/degradable_command_builder"
 require "gracefully/try"
 
 module Gracefully
-  def self.degrade(feature_name)
-    FeatureBuilder.new(feature_name)
+  def self.degradable_command(*args, &block)
+    DegradableCommandBuilder.new.usually(*args, &block)
   end
 
   def self.command(*args, &block)

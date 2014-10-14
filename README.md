@@ -27,8 +27,8 @@ Or install it yourself as:
 Set up one instance per feature which is gracefully degradable.
 
 ```ruby
-the_feature = Gracefully.degrade(:the_feature).
-                usually(retries: 0, allowed_failures: 1) do |a|
+the_feature = Gracefully.
+                degradable_command(retries: 0, allowed_failures: 1) do |a|
                   if rand < 0.5
                     'foo'
                   else
