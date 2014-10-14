@@ -73,6 +73,7 @@ RSpec.describe Gracefully do
         timeout: 0.1,
         retries: 1,
         allowed_failures: allowed_failures,
+        run_only_if: run_only_if,
         counter: -> { Gracefully::InMemoryCounter.new },
         &body
       )
@@ -82,68 +83,88 @@ RSpec.describe Gracefully do
       command.call
     }
 
-    context 'which is successful' do
+    context 'which is enabled' do
+      let(:run_only_if) {
+        -> { true }
+      }
+
+      context 'which is successful' do
+        let(:body) {
+          -> { 'ok' }
+        }
+
+        it { is_expected.to eq('ok') }
+      end
+
+      context 'which fails at first and then succeeds' do
+        let(:body) {
+          count = 0
+          -> {
+            count += 1
+            if count == 1
+              raise 'simulated error'
+            else
+              'ok'
+            end
+          }
+        }
+
+        it { is_expected.to eq('ok') }
+      end
+
+      context 'which is failing' do
+        let(:body) {
+          -> { raise 'simulated error' }
+        }
+
+        context 'after failures more than allowed' do
+          before do
+            (allowed_failures + 1).times do
+              expect { subject }.to raise_error(Gracefully::Error, 'simulated error')
+            end
+          end
+
+          specify {
+            expect { subject }.to raise_error(Gracefully::CircuitBreaker::CurrentlyOpenError)
+          }
+        end
+      end
+
+      context 'which is timing out' do
+        let(:body) {
+          -> { sleep 1 }
+        }
+
+        specify {
+          expect { subject }.to raise_error(Gracefully::Error, 'execution expired')
+        }
+
+        context 'after failures more than allowed' do
+          before do
+            (allowed_failures + 1).times do
+              expect { subject }.to raise_error(Gracefully::Error, 'execution expired')
+            end
+          end
+
+          specify {
+            expect { subject }.to raise_error(Gracefully::CircuitBreaker::CurrentlyOpenError)
+          }
+        end
+      end
+    end
+
+    context 'which is disabled' do
+      let(:run_only_if) {
+        -> { false }
+      }
+
       let(:body) {
         -> { 'ok' }
       }
 
-      it { is_expected.to eq('ok') }
-    end
-
-    context 'which fails at first and then succeeds' do
-      let(:body) {
-        count = 0
-        -> {
-          count += 1
-          if count == 1
-            raise 'simulated error'
-          else
-            'ok'
-          end
-        }
-      }
-
-      it { is_expected.to eq('ok') }
-    end
-
-    context 'which is failing' do
-      let(:body) {
-        -> { raise 'simulated error' }
-      }
-
-      context 'after failures more than allowed' do
-        before do
-          (allowed_failures + 1).times do
-            expect { subject }.to raise_error(Gracefully::Error, 'simulated error')
-          end
-        end
-
-        specify {
-          expect { subject }.to raise_error(Gracefully::CircuitBreaker::CurrentlyOpenError)
-        }
-      end
-    end
-
-    context 'which is timing out' do
-      let(:body) {
-        -> { sleep 1 }
-      }
-
       specify {
-        expect { subject }.to raise_error(Gracefully::Error, 'execution expired')
+        expect { subject }.to raise_error(Gracefully::CommandDisabledError)
       }
-
-      context 'after failures more than allowed' do
-        before do
-          (allowed_failures + 1).times do
-            expect { subject }.to raise_error(Gracefully::Error, 'execution expired')
-          end
-        end
-
-        specify {
-          expect { subject }.to raise_error(Gracefully::CircuitBreaker::CurrentlyOpenError)
-        }
-      end
     end
   end
 end
