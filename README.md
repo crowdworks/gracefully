@@ -24,7 +24,36 @@ Or install it yourself as:
 
 ## Usage
 
-See `spec/gracefully_spec.rb` for basic usage.
+Set up one instance per feature which is gracefully degradable.
+
+```ruby
+the_feature = Gracefully.degrade(:the_feature).
+                usually(retries: 0, allowed_failures: 1) do |a|
+                  if rand < 0.5
+                    'foo'
+                  else
+                    raise 'err1'
+                  end
+                end.
+                fallback_to(retries: 2) do |a|
+                  if rand < 0.5
+                    'bar'
+                  else
+                    raise 'err2'
+                  end
+                end
+
+10.times.map do
+  begin
+    the_feature.call
+  rescue => e
+    e.message
+  end
+end
+#=> ["bar", "bar", "bar", "bar", "bar", "bar", "bar", "bar", "bar", "Tried to get the value of a failure"]
+```
+
+See `spec/gracefully_spec.rb` for more usages.
 
 ## Contributing
 
