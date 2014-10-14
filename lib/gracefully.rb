@@ -11,6 +11,8 @@ module Gracefully
   def self.command(*args, &block)
     callable, options = Command.normalize_arguments(*args, &block)
 
+    options ||= {}
+
     if options[:timeout]
       command(TimedCommand.new(callable, options), options.dup.tap { |h| h.delete(:timeout) })
     elsif options[:retries]
