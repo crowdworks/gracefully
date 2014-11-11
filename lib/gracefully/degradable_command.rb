@@ -5,9 +5,9 @@ module Gracefully
       @fallback_to = args[:fallback_to]
     end
 
-    def call(*args)
-      Try.to { @usually.call *args }.
-        or_else(Try.to { @fallback_to.call *args }).
+    def call(*args, &block)
+      Try.to { @usually.call *args, &block }.
+        or_else(Try.to { @fallback_to.call *args, &block }).
         get
     end
   end
